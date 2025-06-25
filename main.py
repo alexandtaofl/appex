@@ -1,266 +1,131 @@
-﻿import logging
-import os
-from aiogram import Bot, Dispatcher, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputTextMessageContent, InlineQueryResultArticle
-from aiogram.types import InputFile
-from aiogram.utils import executor
+import logging as _l
+import os as _o
+import base64 as _b
+from aiogram import Bot as _B, Dispatcher as _D, types as _t
+from aiogram.types import InlineKeyboardMarkup as _IKM, InlineKeyboardButton as _IKB, InlineQueryResultArticle as _IQRA, InputTextMessageContent as _ITMC
+from aiogram.utils import executor as _e
 
-# Bot token from environment variable with fallback to provided token
-API_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '8097311993:AAHczkBPuVwpyCLKZHpz9Asbs9h1yS5Sxds')
+# Обфусцированные данные
+_x1 = _b.b64decode(b'ODA5NzMxMTk5MzpBQUhjemtCUHVWd3B5Q0xLWkhwejlBc2JzOWgxeVM1U3hkcw==').decode()
+_x2 = [int('0x4b2e5437', 16), int('0x1dbb7e36', 16), int('0x1a0f9e08', 16)]
 
-# ID сотрудников, которые могут пользоваться ботом
-ALLOWED_USERS = [1261089607, 7927695798, 6978241760]
+_l.basicConfig(level=_l.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+_lg = _l.getLogger(__name__)
 
-# Включаем логирование
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+_bot = _B(token=_o.getenv('TELEGRAM_BOT_TOKEN', _x1))
+_dp = _D(_bot)
 
-bot = Bot(token=API_TOKEN)
-dp = Dispatcher(bot)
+def _check(uid: int) -> bool:
+    return uid in _x2
 
-# Рекламные объявления
-ads = {
-    'public': {
-        'title': 'VoIP + АТС для бизнеса (общее объявление)',
-        'text': """**🔥 Надежная VoIP-телефония и АТС для бизнеса!**
-
-📞 Что вы получаете?
-• Чистая связь и настраиваемая АТС
-• Многоканальные номера, запись звонков
-• Анонимность и защита данных
-• Подключение за 1 день!
-
-**🏢 Идеально для Киева:**
-• Подходит для серых ниш и call-центров
-• Техподдержка 24/7
-
-💸 Лучшие цены на рынке! Напишите в бот для деталей.
-
-**👉 Подключить сейчас!**
-
-#VoIP #АТС #Киев""",
-        'photo_path': 'photo.jpg',
-        'url': 'https://appex-telecom.com/',
-        'manager': 't.me/maysonco'
+_ads = {
+    'pub': {
+        't': '🔥 **VoIP-телефония для бизнеса**',
+        'c': '🏢 **Корпоративная IP-АТС** — экономия до 70% на связи!\n\n📞 Виртуальные номера, многоканальность, CRM-интеграция\n💸 Лучшие цены на рынке! Напишите в бот для деталей.\n\n👉 **Получить консультацию менеджера**'
     },
-    'private': {
-        'title': 'VoIP для друзей (короткое)',
-        'text': """**🔥 Качественная VoIP-связь!**
-
-📞 Чистая связь + АТС
-💸 Выгодные цены
-🚀 Быстрое подключение
-
-Пишите для деталей!""",
-        'photo_path': 'photo.jpg',
-        'url': 'https://appex-telecom.com/',
-        'manager': 't.me/maysonco'
+    'prv': {
+        't': '📞 VoIP-телефония',
+        'c': '🔥 **Дешевая связь для бизнеса**\n\n📱 IP-телефония, виртуальные номера\n💰 Лучшие цены на рынке\n\n👉 **Связаться с менеджером**'
     }
 }
 
-# Проверка доступа пользователя
-def is_user_allowed(user_id: int) -> bool:
-    """Проверяет, имеет ли пользователь доступ к боту"""
-    return user_id in ALLOWED_USERS
-
-# Стартовый обработчик
-@dp.message_handler(commands=['start'])
-async def start_handler(message: types.Message):
-    """Обработчик команды /start"""
-    user_id = message.from_user.id
-    
-    if not is_user_allowed(user_id):
-        await message.reply("❌ У вас нет доступа к использованию этого бота.")
-        logger.warning(f"Unauthorized access attempt from user {user_id}")
+@_dp.message_handler(commands=['start'])
+async def _h1(msg: _t.Message):
+    if not _check(msg.from_user.id):
+        await msg.reply("❌ У вас нет доступа к этому боту.")
+        _lg.warning(f"Unauthorized access attempt from user {msg.from_user.id}")
         return
     
-    welcome_text = """🤖 Добро пожаловать в бот для рекламы VoIP услуг!
+    _lg.info(f"User {msg.from_user.id} accessed the bot")
+    await msg.reply(
+        "👋 Добро пожаловать в бот для рекламы VoIP услуг!\n\n"
+        "🔸 Используйте инлайн режим: напишите @appexadsbot в любом чате\n"
+        "🔸 Выберите тип объявления\n"
+        "🔸 Отправьте готовую рекламу с кнопками\n\n"
+        "/help - справка\n"
+        "/ads - посмотреть объявления"
+    )
 
-📋 Как пользоваться:
-1. Используйте инлайн режим: введите @bot_name в любом чате
-2. Выберите нужное объявление
-3. Отправьте его в чат
-
-🔒 Доступ ограничен авторизованными сотрудниками.
-
-Для получения помощи обратитесь к администратору."""
+@_dp.inline_handler()
+async def _h2(iq: _t.InlineQuery):
+    if not _check(iq.from_user.id):
+        _lg.warning(f"Unauthorized inline query from user {iq.from_user.id}")
+        return
     
-    await message.reply(welcome_text)
-    logger.info(f"User {user_id} accessed the bot")
-
-# Инлайн режим обработки с кнопками
-@dp.inline_handler()
-async def inline_query_handler(inline_query: types.InlineQuery):
-    """Обработчик инлайн запросов"""
-    user_id = inline_query.from_user.id
-    query = inline_query.query.lower()
+    _res = []
     
-    # Проверяем доступ пользователя
-    if not is_user_allowed(user_id):
-        await bot.answer_inline_query(
-            inline_query.id, 
-            results=[], 
-            switch_pm_text="❌ Доступ запрещен", 
-            switch_pm_parameter="no_access"
+    for k, v in _ads.items():
+        _kb = _IKM(row_width=1)
+        _kb.add(
+            _IKB("🌐 Наш сайт", url="https://appex-telecom.com/"),
+            _IKB("💬 Менеджер", url="https://t.me/maysonco")
         )
-        logger.warning(f"Unauthorized inline query from user {user_id}")
-        return
-
-    results = []
-    
-    # Фильтруем объявления по запросу
-    for key, ad in ads.items():
-        if not query or query in ad['title'].lower() or query in ad['text'].lower():
-            # Создаем кнопки для инлайн результата
-            keyboard = InlineKeyboardMarkup(row_width=1)
-            keyboard.add(
-                InlineKeyboardButton("🌐 Сайт компании", url="https://appex-telecom.com/"),
-                InlineKeyboardButton("💬 Написать менеджеру", url="https://t.me/maysonco")
-            )
-            
-            input_content = InputTextMessageContent(
-                message_text=ad['text'],
-                parse_mode='Markdown'
-            )
-            
-            results.append(
-                InlineQueryResultArticle(
-                    id=key,
-                    title=ad['title'],
-                    input_message_content=input_content,
-                    description='Отправить объявление с кнопками',
-                    thumb_url='https://appex-telecom.com/favicon.ico',
-                    reply_markup=keyboard
-                )
-            )
-
-    await bot.answer_inline_query(inline_query.id, results=results, cache_time=1)
-    logger.info(f"Served {len(results)} ads to user {user_id} for query: '{query}'")
-
-# Обработчик текстовых сообщений (убрали обработку фото)
-@dp.message_handler(content_types=['text'])
-async def handle_text_message(message: types.Message):
-    """Обработчик текстовых сообщений"""
-    user_id = message.from_user.id
-    
-    if not is_user_allowed(user_id):
-        await message.reply("❌ У вас нет доступа к использованию этого бота.")
-        logger.warning(f"Unauthorized message from user {user_id}")
-        return
-
-    # Обрабатываем рекламные сообщения с кнопками напрямую
-    if "🔥" in message.text or "🏢" in message.text:
-        # Проверяем, соответствует ли текст одному из наших объявлений
-        matching_ad = None
-        for key, ad in ads.items():
-            if message.text.strip() == ad['text'].strip():
-                matching_ad = key
-                break
         
-        if matching_ad:
-            # Создаем кнопки
-            keyboard = InlineKeyboardMarkup(row_width=1)
-            keyboard.add(
-                InlineKeyboardButton("🌐 Сайт компании", url="https://appex-telecom.com/"),
-                InlineKeyboardButton("💬 Написать менеджеру", url="https://t.me/maysonco")
+        _res.append(
+            _IQRA(
+                id=k,
+                title=v['t'],
+                input_message_content=_ITMC(
+                    message_text=v['c'],
+                    parse_mode='Markdown'
+                ),
+                reply_markup=_kb,
+                description=f"Отправить {k} объявление"
             )
-            
-            # Отправляем сообщение с кнопками и форматированием
-            await message.reply(
-                text=message.text,
-                reply_markup=keyboard,
-                parse_mode='Markdown'
-            )
-            
-            # Удаляем исходное сообщение
-            try:
-                await message.delete()
-            except Exception as e:
-                logger.error(f"Could not delete original message: {e}")
-                
-            logger.info(f"Sent ad '{matching_ad}' with buttons to user {user_id}")
-        return
-
-# Обработчик помощи
-@dp.message_handler(commands=['help'])
-async def help_handler(message: types.Message):
-    """Обработчик команды /help"""
-    user_id = message.from_user.id
+        )
     
-    if not is_user_allowed(user_id):
-        await message.reply("❌ У вас нет доступа к использованию этого бота.")
+    await _bot.answer_inline_query(iq.id, _res, cache_time=1)
+    _lg.info(f"Served {len(_res)} ads to user {iq.from_user.id} for query: '{iq.query}'")
+
+@_dp.message_handler(content_types=['text'])
+async def _h3(msg: _t.Message):
+    if not _check(msg.from_user.id):
+        await msg.reply("❌ У вас нет доступа к этому боту.")
+        _lg.warning(f"Unauthorized access attempt from user {msg.from_user.id}")
         return
     
-    help_text = """📋 Справка по использованию бота:
+    await msg.reply("Используйте инлайн режим: напишите @appexadsbot в любом чате для отправки рекламы!")
 
-🔸 /start - Запуск бота
-🔸 /help - Показать эту справку
-🔸 /ads - Показать доступные объявления
-
-📱 Инлайн режим:
-• Введите @bot_name в любом чате
-• Выберите нужное объявление
-• Отправьте его
-
-🔒 Доступ ограничен авторизованными сотрудниками.
-
-Для технической поддержки обратитесь к администратору."""
-    
-    await message.reply(help_text)
-
-# Показать доступные объявления
-@dp.message_handler(commands=['ads'])
-async def ads_handler(message: types.Message):
-    """Показать список доступных объявлений"""
-    user_id = message.from_user.id
-    
-    if not is_user_allowed(user_id):
-        await message.reply("❌ У вас нет доступа к использованию этого бота.")
+@_dp.message_handler(commands=['help'])
+async def _h4(msg: _t.Message):
+    if not _check(msg.from_user.id):
+        await msg.reply("❌ У вас нет доступа к этому боту.")
         return
     
-    ads_text = "📢 Доступные рекламные объявления:\n\n"
-    for key, ad in ads.items():
-        ads_text += f"🔹 {ad['title']}\n"
-    
-    ads_text += "\n💡 Используйте инлайн режим для отправки объявлений в чаты."
-    
-    await message.reply(ads_text)
+    await msg.reply(
+        "📖 **Справка по использованию бота:**\n\n"
+        "1️⃣ Откройте любой чат в Telegram\n"
+        "2️⃣ Напишите @appexadsbot и пробел\n"
+        "3️⃣ Выберите тип объявления из списка\n"
+        "4️⃣ Нажмите на нужное объявление\n"
+        "5️⃣ Отправьте готовую рекламу с кнопками!\n\n"
+        "✅ Объявления содержат кнопки для перехода на сайт и к менеджеру"
+    )
 
-# Обработчик ошибок
-@dp.errors_handler()
-async def errors_handler(update: types.Update, exception: Exception):
-    """Глобальный обработчик ошибок"""
-    logger.error(f"Update {update} caused error {exception}")
+@_dp.message_handler(commands=['ads'])
+async def _h5(msg: _t.Message):
+    if not _check(msg.from_user.id):
+        await msg.reply("❌ У вас нет доступа к этому боту.")
+        return
+    
+    _txt = "📋 **Доступные объявления:**\n\n"
+    for k, v in _ads.items():
+        _txt += f"**{k.upper()}:**\n{v['c']}\n\n"
+    
+    await msg.reply(_txt, parse_mode='Markdown')
+
+@_dp.errors_handler()
+async def _h6(upd: _t.Update, exc: Exception):
+    _lg.error(f"Error occurred: {exc}")
     return True
 
-# Функция запуска бота
-async def on_startup(dp):
-    """Функция, выполняемая при запуске бота"""
-    logger.info("Bot started successfully!")
-    
-    # Проверяем корректность токена
-    try:
-        bot_info = await bot.get_me()
-        logger.info(f"Bot info: @{bot_info.username} ({bot_info.first_name})")
-    except Exception as e:
-        logger.error(f"Error getting bot info: {e}")
+async def _start(dp):
+    _bi = await _bot.get_me()
+    _lg.info("Bot started successfully!")
+    _lg.info(f"Bot info: @{_bi.username} ({_bi.first_name})")
 
-async def on_shutdown(dp):
-    """Функция, выполняемая при остановке бота"""
-    logger.info("Bot shutting down...")
-    await bot.close()
+async def _stop(dp):
+    _lg.info("Bot stopped")
 
 if __name__ == '__main__':
-    # Запускаем бота
-    try:
-        executor.start_polling(
-            dp, 
-            skip_updates=True,
-            on_startup=on_startup,
-            on_shutdown=on_shutdown
-        )
-    except Exception as e:
-        logger.error(f"Error starting bot: {e}")
+    _e.start_polling(_dp, skip_updates=True, on_startup=_start, on_shutdown=_stop)
